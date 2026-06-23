@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LivePulse — World News Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@300;400;500;600&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="header-left">
+      <div class="logo">
+        <span class="logo-dot"></span>
+        <span class="logo-text">LivePulse</span>
+      </div>
+      <div class="live-badge">
+        <span class="pulse-ring"></span>
+        LIVE
+      </div>
+    </div>
+    <div class="header-center">
+      <div id="ticker-wrap" class="ticker-wrap">
+        <div class="ticker-label">BREAKING</div>
+        <div class="ticker-track" id="ticker-track">
+          <span class="ticker-placeholder">Loading latest headlines…</span>
+        </div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="clock-block">
+        <div id="clock" class="clock">--:--:--</div>
+        <div id="clock-date" class="clock-date">--- --, ----</div>
+      </div>
+      <button class="refresh-btn" id="refresh-btn" title="Refresh all feeds">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="23 4 23 10 17 10"></polyline>
+          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+        </svg>
+        Refresh
+      </button>
+    </div>
+  </header>
+
+  <!-- CATEGORY FILTER -->
+  <nav class="category-nav">
+    <button class="cat-btn active" data-cat="all">All Channels</button>
+    <button class="cat-btn" data-cat="world">World</button>
+    <button class="cat-btn" data-cat="tech">Technology</button>
+    <button class="cat-btn" data-cat="business">Business</button>
+    <button class="cat-btn" data-cat="science">Science</button>
+    <button class="cat-btn" data-cat="sports">Sports</button>
+  </nav>
+
+  <!-- MAIN DASHBOARD -->
+  <main class="dashboard" id="dashboard">
+    <!-- Feed cards injected by JS -->
+  </main>
+
+  <!-- ARTICLE MODAL -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal" id="modal">
+      <button class="modal-close" id="modal-close">✕</button>
+      <div class="modal-source" id="modal-source"></div>
+      <h2 class="modal-title" id="modal-title"></h2>
+      <div class="modal-meta" id="modal-meta"></div>
+      <p class="modal-desc" id="modal-desc"></p>
+      <a class="modal-link" id="modal-link" target="_blank" rel="noopener">Read Full Article →</a>
+    </div>
+  </div>
+
+  <!-- STATUS BAR -->
+  <footer class="status-bar">
+    <span id="status-text">Initializing feeds…</span>
+    <span id="next-refresh">Next refresh in <b id="countdown">60</b>s</span>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
