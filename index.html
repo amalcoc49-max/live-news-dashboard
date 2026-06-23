@@ -1,83 +1,435 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>LivePulse — World News Dashboard</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@300;400;500;600&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body>
+/* ── RESET & BASE ──────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  <!-- HEADER -->
-  <header class="site-header">
-    <div class="header-left">
-      <div class="logo">
-        <span class="logo-dot"></span>
-        <span class="logo-text">LivePulse</span>
-      </div>
-      <div class="live-badge">
-        <span class="pulse-ring"></span>
-        LIVE
-      </div>
-    </div>
-    <div class="header-center">
-      <div id="ticker-wrap" class="ticker-wrap">
-        <div class="ticker-label">BREAKING</div>
-        <div class="ticker-track" id="ticker-track">
-          <span class="ticker-placeholder">Loading latest headlines…</span>
-        </div>
-      </div>
-    </div>
-    <div class="header-right">
-      <div class="clock-block">
-        <div id="clock" class="clock">--:--:--</div>
-        <div id="clock-date" class="clock-date">--- --, ----</div>
-      </div>
-      <button class="refresh-btn" id="refresh-btn" title="Refresh all feeds">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="23 4 23 10 17 10"></polyline>
-          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
-        </svg>
-        Refresh
-      </button>
-    </div>
-  </header>
+:root {
+  --bg:        #0a0a0f;
+  --surface:   #111118;
+  --card:      #16161f;
+  --border:    #ffffff0f;
+  --accent:    #e63946;
+  --accent2:   #f4a261;
+  --text:      #e8e8f0;
+  --muted:     #7a7a9a;
+  --ticker-bg: #e63946;
+  --font-display: 'Playfair Display', serif;
+  --font-body:    'Inter', sans-serif;
+  --font-mono:    'Roboto Mono', monospace;
+  --radius:    6px;
+  --transition: 0.2s ease;
+}
 
-  <!-- CATEGORY FILTER -->
-  <nav class="category-nav">
-    <button class="cat-btn active" data-cat="all">All Channels</button>
-    <button class="cat-btn" data-cat="world">World</button>
-    <button class="cat-btn" data-cat="tech">Technology</button>
-    <button class="cat-btn" data-cat="business">Business</button>
-    <button class="cat-btn" data-cat="science">Science</button>
-    <button class="cat-btn" data-cat="sports">Sports</button>
-  </nav>
+html { scroll-behavior: smooth; }
 
-  <!-- MAIN DASHBOARD -->
-  <main class="dashboard" id="dashboard">
-    <!-- Feed cards injected by JS -->
-  </main>
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
 
-  <!-- ARTICLE MODAL -->
-  <div class="modal-overlay" id="modal-overlay">
-    <div class="modal" id="modal">
-      <button class="modal-close" id="modal-close">✕</button>
-      <div class="modal-source" id="modal-source"></div>
-      <h2 class="modal-title" id="modal-title"></h2>
-      <div class="modal-meta" id="modal-meta"></div>
-      <p class="modal-desc" id="modal-desc"></p>
-      <a class="modal-link" id="modal-link" target="_blank" rel="noopener">Read Full Article →</a>
-    </div>
-  </div>
+/* ── HEADER ────────────────────────────────────────────────── */
+.site-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 0 24px;
+  height: 60px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
 
-  <!-- STATUS BAR -->
-  <footer class="status-bar">
-    <span id="status-text">Initializing feeds…</span>
-    <span id="next-refresh">Next refresh in <b id="countdown">60</b>s</span>
-  </footer>
+.header-left  { display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
+.header-center { flex: 1; overflow: hidden; }
+.header-right  { display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
 
-  <script src="app.js"></script>
-</body>
-</html>
+/* Logo */
+.logo { display: flex; align-items: center; gap: 8px; }
+.logo-dot {
+  width: 10px; height: 10px;
+  background: var(--accent);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--accent);
+}
+.logo-text {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  color: #fff;
+}
+
+/* Live badge */
+.live-badge {
+  display: flex; align-items: center; gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 500;
+  letter-spacing: 2px;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  padding: 3px 8px;
+  border-radius: 3px;
+}
+.pulse-ring {
+  width: 7px; height: 7px;
+  background: var(--accent);
+  border-radius: 50%;
+  animation: pulse 1.4s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.4; transform: scale(0.7); }
+}
+
+/* Breaking ticker */
+.ticker-wrap {
+  display: flex; align-items: center;
+  gap: 0;
+  overflow: hidden;
+  height: 36px;
+  background: transparent;
+}
+.ticker-label {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 500;
+  letter-spacing: 2px;
+  background: var(--accent);
+  color: #fff;
+  padding: 4px 10px;
+  height: 100%;
+  display: flex; align-items: center;
+  flex-shrink: 0;
+}
+.ticker-track {
+  overflow: hidden;
+  white-space: nowrap;
+  flex: 1;
+  padding-left: 12px;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+.ticker-scroll {
+  display: inline-block;
+  animation: ticker-move 40s linear infinite;
+}
+@keyframes ticker-move {
+  0%   { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+
+/* Clock */
+.clock-block { text-align: right; }
+.clock {
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text);
+  letter-spacing: 1px;
+}
+.clock-date {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--muted);
+  letter-spacing: 1px;
+  margin-top: 1px;
+}
+
+/* Refresh button */
+.refresh-btn {
+  display: flex; align-items: center; gap: 7px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  padding: 6px 12px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: var(--transition);
+}
+.refresh-btn:hover { border-color: var(--accent); color: var(--accent); }
+.refresh-btn.spinning svg { animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── CATEGORY NAV ──────────────────────────────────────────── */
+.category-nav {
+  display: flex; align-items: center; gap: 4px;
+  padding: 10px 24px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+}
+.cat-btn {
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 500;
+  padding: 5px 14px;
+  border: 1px solid transparent;
+  border-radius: 20px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: var(--transition);
+}
+.cat-btn:hover { color: var(--text); }
+.cat-btn.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+/* ── DASHBOARD GRID ────────────────────────────────────────── */
+.dashboard {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 20px;
+  padding: 24px;
+  flex: 1;
+}
+
+/* ── FEED CARD ─────────────────────────────────────────────── */
+.feed-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: border-color var(--transition);
+}
+.feed-card:hover { border-color: #ffffff1a; }
+
+.feed-card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.feed-channel-info { display: flex; align-items: center; gap: 10px; }
+.feed-channel-icon {
+  width: 28px; height: 28px;
+  border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.65rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+.feed-channel-name {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text);
+}
+.feed-channel-cat {
+  font-size: 0.65rem;
+  font-family: var(--font-mono);
+  color: var(--muted);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+.feed-status {
+  font-size: 0.65rem;
+  font-family: var(--font-mono);
+  color: var(--muted);
+  letter-spacing: 1px;
+}
+.feed-status.ok    { color: #2ecc71; }
+.feed-status.error { color: var(--accent); }
+
+/* Article list */
+.feed-articles {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 380px;
+  scrollbar-width: thin;
+  scrollbar-color: #2a2a3a transparent;
+}
+.feed-articles::-webkit-scrollbar { width: 4px; }
+.feed-articles::-webkit-scrollbar-thumb { background: #2a2a3a; border-radius: 2px; }
+
+.article-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background var(--transition);
+}
+.article-item:last-child { border-bottom: none; }
+.article-item:hover { background: #ffffff06; }
+
+.article-title {
+  font-size: 0.83rem;
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.article-meta {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 0.68rem;
+  font-family: var(--font-mono);
+  color: var(--muted);
+}
+.article-meta .dot { opacity: 0.4; }
+.article-new-badge {
+  font-size: 0.58rem;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  letter-spacing: 1px;
+  background: var(--accent);
+  color: #fff;
+  padding: 1px 5px;
+  border-radius: 2px;
+}
+
+/* Loading skeleton */
+.skeleton-item {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.skeleton-line {
+  background: #ffffff0a;
+  border-radius: 3px;
+  height: 12px;
+  margin-bottom: 8px;
+  animation: shimmer 1.5s infinite;
+}
+.skeleton-line.short { width: 60%; height: 10px; }
+@keyframes shimmer {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 0.9; }
+}
+
+/* Error state */
+.feed-error {
+  padding: 20px 16px;
+  font-size: 0.78rem;
+  color: var(--muted);
+  text-align: center;
+  line-height: 1.6;
+}
+.feed-error span { color: var(--accent); font-size: 1.2rem; display: block; margin-bottom: 6px; }
+
+/* ── MODAL ─────────────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: #000000cc;
+  backdrop-filter: blur(4px);
+  z-index: 200;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.2s;
+}
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+
+.modal {
+  background: var(--card);
+  border: 1px solid #ffffff18;
+  border-radius: 10px;
+  padding: 32px;
+  max-width: 600px;
+  width: 90%;
+  position: relative;
+  transform: translateY(20px);
+  transition: transform 0.25s ease;
+}
+.modal-overlay.open .modal { transform: translateY(0); }
+
+.modal-close {
+  position: absolute; top: 16px; right: 16px;
+  background: transparent; border: none;
+  color: var(--muted); font-size: 1rem;
+  cursor: pointer; width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 4px;
+  transition: var(--transition);
+}
+.modal-close:hover { background: #ffffff10; color: var(--text); }
+
+.modal-source {
+  font-size: 0.68rem;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.modal-title {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 700;
+  line-height: 1.4;
+  color: #fff;
+  margin-bottom: 10px;
+}
+.modal-meta {
+  font-size: 0.72rem;
+  font-family: var(--font-mono);
+  color: var(--muted);
+  margin-bottom: 16px;
+}
+.modal-desc {
+  font-size: 0.88rem;
+  line-height: 1.7;
+  color: #b8b8d0;
+  margin-bottom: 24px;
+}
+.modal-link {
+  display: inline-block;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px solid var(--accent);
+  padding-bottom: 1px;
+  transition: var(--transition);
+}
+.modal-link:hover { opacity: 0.8; }
+
+/* ── STATUS BAR ────────────────────────────────────────────── */
+.status-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 24px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  font-size: 0.7rem;
+  font-family: var(--font-mono);
+  color: var(--muted);
+}
+#next-refresh b { color: var(--accent2); }
+
+/* ── RESPONSIVE ────────────────────────────────────────────── */
+@media (max-width: 700px) {
+  .site-header { gap: 10px; padding: 0 14px; }
+  .clock-block { display: none; }
+  .dashboard { grid-template-columns: 1fr; padding: 14px; gap: 14px; }
+  .ticker-wrap { display: none; }
+}
+
+/* ── ROTATION BAR ──────────────────────────────────────────── */
+.rotation-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 24px;
+  background: #0f0f18;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.7rem;
+  font-family: var(--font-mono);
+  color: var(--accent2);
+  letter-spacing: 0.5px;
+}
+.rotation-icon { font-size: 0.8rem; }
